@@ -1,0 +1,95 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-video_bot_db}
+      POSTGRES_USER: ${DB_USER:-bot_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-bot_password}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./data:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bot_user} -d ${DB_NAME:-video_bot_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - bot-network
+    restart: unless-stopped
+
+  data-loader:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: video-bot-loader
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-video_bot_db}
+      DB_USER: ${DB_USER:-bot_user}
+      DB_PASSWORD: ${DB_PASSWORD:-bot_password}
+      PYTHONPATH: /opt/app:$PYTHONPATH
+    volumes:
+      - ./data:/opt/data
+      - ./scripts:/opt/scripts
+      - ./app:/opt/app
+      - ./bot:/opt/bot
+    working_dir: /opt
+    networks:
+      - bot-network
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL...' &&
+        sleep 10 &&
+        echo 'Loading data...' &&
+        python /opt/scripts/load_json.py
+      "
+    restart: "no"
+
+  telegram-bot:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: video-bot-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      data-loader:
+        condition: service_completed_successfully
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-video_bot_db}
+      DB_USER: ${DB_USER:-bot_user}
+      DB_PASSWORD: ${DB_PASSWORD:-bot_password}
+      BOT_TOKEN: ${BOT_TOKEN}
+      ADMIN_CHAT_ID: ${ADMIN_CHAT_ID:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PYTHONPATH: /opt/app:$PYTHONPATH
+    volumes:
+      - ./bot:/opt/bot
+      - ./app:/opt/app
+    working_dir: /opt
+    networks:
+      - bot-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Starting Telegram Bot...' &&
+        python bot/bot.py
+      "
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

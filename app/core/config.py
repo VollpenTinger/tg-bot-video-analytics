@@ -10,5 +10,10 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str 
     ADMIN_ID: List[int] = []
+    DB_HOST: str
+    DB_PORT: str
+    DB_NAME: str
+    DB_USER: str
+    DB_PASSWORD: str
 
 settings = Settings()
