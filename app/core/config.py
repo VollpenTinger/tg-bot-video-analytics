@@ -16,4 +16,11 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASSWORD: str
 
+    YANDEX_API_KEY: str
+    YANDEX_FOLDER_ID: str
+
+    @property
+    def database_url(self):
+        return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
 settings = Settings()

@@ -74,6 +74,8 @@ services:
       ADMIN_CHAT_ID: ${ADMIN_CHAT_ID:-}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       PYTHONPATH: /opt/app:$PYTHONPATH
+      YANDEX_API_KEY: ${YANDEX_API_KEY}
+      YANDEX_FOLDER_ID: ${YANDEX_FOLDER_ID}
     volumes:
       - ./bot:/opt/bot
       - ./app:/opt/app
