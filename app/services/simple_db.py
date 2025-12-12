@@ -1,5 +1,8 @@
 import asyncpg
+import logging
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 class SimpleDatabase:
     def __init__(self):
@@ -31,26 +34,41 @@ class SimpleDatabase:
     async def execute_query(self, sql: str) -> list:
         """Выполнить SQL-запрос и вернуть результаты"""
         if not sql.strip().upper().startswith('SELECT'):
+            logger.warning(f"Попытка выполнить не SELECT запрос: {sql}")
             return []
         
         await self.connect()
         
-        async with self.pool.acquire() as conn:
-            rows = await conn.fetch(sql)
-            return [dict(row) for row in rows]
+        try:
+            async with self.pool.acquire() as conn:
+                rows = await conn.fetch(sql)
+                result = []
+                for row in rows:
+                    # Преобразуем каждую строку в словарь
+                    row_dict = {}
+                    for key in row.keys():
+                        row_dict[key] = row[key]
+                    result.append(row_dict)
+                return result
+        except Exception as e:
+            logger.error(f"Ошибка выполнения SQL запроса: {e}, SQL: {sql}")
+            return []
     
     async def get_stats(self) -> dict:
-        """Получить базовую статистику"""
+        """Получить базовую статистику (оставлено для обратной совместимости, если нужно)"""
         await self.connect()
         
-        async with self.pool.acquire() as conn:
-            videos_count = await conn.fetchval("SELECT COUNT(*) FROM videos")
-            snapshots_count = await conn.fetchval("SELECT COUNT(*) FROM video_snapshots")
-            
-            return {
-                "videos": videos_count,
-                "snapshots": snapshots_count,
-                "message": f"В базе {videos_count} видео и {snapshots_count} снапшотов"
-            }
+        try:
+            async with self.pool.acquire() as conn:
+                videos_count = await conn.fetchval("SELECT COUNT(*) FROM videos")
+                snapshots_count = await conn.fetchval("SELECT COUNT(*) FROM video_snapshots")
+                
+                return {
+                    "videos": videos_count,
+                    "snapshots": snapshots_count
+                }
+        except Exception as e:
+            logger.error(f"Ошибка получения статистики: {e}")
+            return {"videos": 0, "snapshots": 0}
 
 db_service = SimpleDatabase()
