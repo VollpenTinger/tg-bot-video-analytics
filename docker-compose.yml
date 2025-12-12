@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -18,6 +20,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - bot-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - bot-network
     restart: unless-stopped
@@ -62,6 +81,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       data-loader:
         condition: service_completed_successfully
     environment:
@@ -76,6 +97,13 @@ services:
       PYTHONPATH: /opt/app:$PYTHONPATH
       YANDEX_API_KEY: ${YANDEX_API_KEY}
       YANDEX_FOLDER_ID: ${YANDEX_FOLDER_ID}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_CACHE_TTL: ${REDIS_CACHE_TTL:-3600}
+      ENABLE_CACHE: ${ENABLE_CACHE:-true}
+      MIN_CACHE_LENGTH: ${MIN_CACHE_LENGTH:-3}
     volumes:
       - ./bot:/opt/bot
       - ./app:/opt/app
@@ -86,6 +114,7 @@ services:
     command: >
       sh -c "
         echo 'Starting Telegram Bot...' &&
+        echo 'Redis host: $REDIS_HOST, port: $REDIS_PORT' &&
         python bot/bot.py
       "
 
@@ -95,3 +124,4 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:

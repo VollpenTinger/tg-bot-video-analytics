@@ -6,6 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 
 from app.core.config import settings
 from app.services.simple_db import db_service
+from app.services.cache_service import cache_service
 from app.handlers import base_router, user_router
 
 # Настройка логирования
@@ -30,6 +31,13 @@ async def main():
     # Подключаемся к базе данных
     await db_service.connect()
     
+    await cache_service.connect()
+
+    if cache_service.redis_client:
+        logger.info("✅ Redis подключен, кеширование активно")
+    else:
+        logger.warning("⚠️ Redis не подключен, кеширование не работает")
+
     # Запуск бота
     logger.info("Бот запущен и готов к работе!")
     await dp.start_polling(bot)

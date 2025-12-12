@@ -6,6 +6,7 @@ from aiogram.types import Message
 from app.core.config import settings
 from app.services.simple_gpt import gpt_service
 from app.services.simple_db import db_service
+from app.services.cache_service import cache_service
 from .base import contains_non_numeric_keywords, format_numeric_result
 
 logger = logging.getLogger(__name__)
@@ -71,6 +72,13 @@ async def handle_text(message: Message, bot: Bot):
         )
         return
     
+    # Проверяем кеш
+    cached_result = await cache_service.get_cached_result(user_query)
+    if cached_result:
+        await message.answer(cached_result)
+        return
+    
+
     await bot.send_chat_action(message.chat.id, "typing")
     
     status_msg = await message.answer(f"Анализирую запрос: <i>{user_query}</i>")
@@ -101,6 +109,8 @@ async def handle_text(message: Message, bot: Bot):
         # Форматируем результат как простое число/числа
         formatted_result = format_numeric_result(results)
         
+        await cache_service.save_to_cache(user_query, formatted_result)
+
         # Отправляем только числовой ответ
         await status_msg.edit_text(f"{formatted_result}")
         
