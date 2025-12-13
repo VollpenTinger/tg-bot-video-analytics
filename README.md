@@ -49,8 +49,6 @@ sql = await gpt_service.ask_gpt(user_query, db_schema)
        - НЕ используй простое равенство с датой (created_at = '2025-11-27' НЕПРАВИЛЬНО!)
        - Используй DATE(created_at) = '2025-11-27' или диапазон created_at >= '2025-11-27' AND created_at < '2025-11-28'
         3. Формат дат в базе: TIMESTAMP WITH TIME ZONE
-
-        Схема базы данных:
         {db_schema}
         
         Пользователь спрашивает: {user_query}
