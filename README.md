@@ -30,11 +30,14 @@ video-stats-bot/
 ├── scripts/
 │   └── load_json.py            # Скрипт загрузки данных
 ├── data/                       # Папка с JSON файлом
+├── docs/                       # Папка для документации
 ├── docker-compose.yml          # Конфигурация Docker
 ├── Dockerfile                  # Образ Docker
 ├── .env                       # Конфигурация приложения
 └── requirements.txt           # Зависимости Python
 ```
+## Схема работы
+<img src="https://github.com/VollpenTinger/tg-bot-video-analytics/blob/main/docs/diagram.png"> 
 
 ## Быстрый старт
 
