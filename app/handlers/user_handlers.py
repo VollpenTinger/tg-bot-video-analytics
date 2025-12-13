@@ -80,30 +80,27 @@ async def handle_text(message: Message, bot: Bot):
     
 
     await bot.send_chat_action(message.chat.id, "typing")
-    
-    status_msg = await message.answer(f"Анализирую запрос: <i>{user_query}</i>")
-    
+        
     try:
         db_schema = await db_service.get_schema()
         
         sql = await gpt_service.ask_gpt(user_query, db_schema)
         
         if not sql:
-            await status_msg.edit_text("Не удалось сгенерировать запрос. Попробуйте сформулировать иначе.")
+            await message.answer("Не удалось сгенерировать запрос. Попробуйте сформулировать иначе.")
             return
         
         # Проверяем, что запрос начинается с SELECT (безопасность)
         if not sql.strip().upper().startswith('SELECT'):
-            await status_msg.edit_text("Сгенерирован некорректный запрос.")
+            await message.answer("Сгенерирован некорректный запрос.")
             return
         
-        await status_msg.edit_text(f"SQL запрос сгенерирован...")
         logger.info(f"SQL запрос: {sql}")
         
         results = await db_service.execute_query(sql)
         
         if not results:
-            await status_msg.edit_text("По вашему запросу данных не найдено.")
+            await message.answer("По вашему запросу данных не найдено.")
             return
         
         # Форматируем результат как простое число/числа
@@ -112,8 +109,8 @@ async def handle_text(message: Message, bot: Bot):
         await cache_service.save_to_cache(user_query, formatted_result)
 
         # Отправляем только числовой ответ
-        await status_msg.edit_text(f"{formatted_result}")
-        
+        await message.answer(f"{formatted_result}")     
+
     except Exception as e:
         logger.error(f"Ошибка: {e}", exc_info=True)
-        await status_msg.edit_text(f"Произошла ошибка при обработке запроса")
+        await message.answer(f"Произошла ошибка при обработке запроса")
