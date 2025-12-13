@@ -49,9 +49,6 @@ class SimpleYandexGPT:
         - "Сколько видео создано 2025-11-10" → SELECT COUNT(*) FROM videos WHERE DATE(video_created_at) = '2025-11-10'
         - "Сколько видео за ноябрь 2025" → SELECT COUNT(*) FROM videos WHERE video_created_at >= '2025-11-01' AND video_created_at < '2025-12-01'
         
-        Генерируй запрос так, чтобы он возвращал ОДНО числовое значение.
-        Используй только агрегирующие функции (COUNT, SUM, AVG, MAX, MIN).
-        
         Верни ТОЛЬКО SQL-запрос без пояснений и без форматирования markdown.
         Примеры правильных запросов:
         - SELECT COUNT(*) FROM videos;
