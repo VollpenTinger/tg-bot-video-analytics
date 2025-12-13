@@ -25,9 +25,11 @@ services:
     restart: unless-stopped
 
   redis:
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     image: redis:7-alpine
     container_name: redis
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -41,6 +43,7 @@ services:
       - bot-network
     restart: unless-stopped
 
+  # НОВЫЙ СЕРВИС: Data Loader
   data-loader:
     build: 
       context: .
@@ -84,7 +87,7 @@ services:
       redis:
         condition: service_healthy
       data-loader:
-        condition: service_completed_successfully
+        condition: service_completed_successfully  # Зависимость от data-loader
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -100,7 +103,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: ${REDIS_DB:-0}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_CACHE_TTL: ${REDIS_CACHE_TTL:-3600}
       ENABLE_CACHE: ${ENABLE_CACHE:-true}
       MIN_CACHE_LENGTH: ${MIN_CACHE_LENGTH:-3}

@@ -1,25 +1,37 @@
 FROM python:3.11-slim
 
+# Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
     postgresql-client \
+    curl \
+    gnupg \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /opt/app /opt/scripts /opt/data /opt/bot
+# Создаем не-root пользователя
+RUN groupadd -r botuser && useradd -r -g botuser botuser
 
 WORKDIR /opt
 
+# Копирование requirements первым (для кеширования слоев)
 COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Копируем исходный код
+COPY . . 
 
-COPY . .
+# Создаем директории для логов
+RUN mkdir -p /opt/logs && chown -R botuser:botuser /opt/logs
 
-RUN ln -sf /opt/app /app && \
-    ln -sf /opt/scripts /scripts && \
-    ln -sf /opt/bot /bot
+# Права на файлы
+RUN chown -R botuser:botuser /opt
 
-ENV PYTHONPATH=/opt/app:$PYTHONPATH
+# Переключаемся на не-root пользователя
+USER botuser
 
-WORKDIR /opt
+# Проверка здоровья (опционально)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)"
 
-CMD ["python", "--version"]
+# Команда запуска (переопределяется в docker-compose)
+CMD ["python", "bot/bot.py"]
