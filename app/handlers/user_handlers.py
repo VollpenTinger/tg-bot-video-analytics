@@ -4,8 +4,8 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from app.core.config import settings
-from app.services.simple_gpt import gpt_service
-from app.services.simple_db import db_service
+from app.services.gpt_service import gpt_service
+from app.services import db_service
 from app.services.cache_service import cache_service
 from .base import contains_non_numeric_keywords, format_numeric_result
 

@@ -5,7 +5,7 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
 from app.core.config import settings
-from app.services.simple_db import db_service
+from app.services import db_service
 from app.services.cache_service import cache_service
 from app.handlers import base_router, user_router
 

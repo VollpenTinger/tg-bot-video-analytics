@@ -13,7 +13,7 @@ def contains_non_numeric_keywords(query: str) -> bool:
     
     # Ключевые слова для вопросов с нечисловыми ответами
     non_numeric_patterns = [
-        r'\bкакие\b', r'\bкакая\b', r'\bкаков\b',
+        r'\bкакие\b', r'\bкакая\b', r'\bкаков\b',r'\bкакой\b',
         r'\bкто\b', r'\bчто\b', r'\bгде\b', r'\bкуда\b', r'\bоткуда\b',
         r'\bпочему\b', r'\bзачем\b', r'\bкак\b', r'\bкогда\b',
         r'\bназови\b', r'\bперечисли\b', r'\bпокажи\b', r'\bвыведи\b',

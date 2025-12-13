@@ -2,7 +2,9 @@ import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch, MagicMock
 from aiogram.types import Message, Chat, User
-
+from app.services.db_service import db_service
+from app.services.gpt_service import gpt_service
+from app.services.cache_service import cache_service
 from app.handlers.user_handlers import handle_text, cmd_start
 
 
